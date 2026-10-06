@@ -15,6 +15,7 @@
 <body>
   <a class="skip-link" href="#main">跳到主要内容</a>
 
+
   <header class="site-header">
     <div class="nav shell">
       <a class="brand" href="#top" aria-label="工迹 WorkDelta 首页">
@@ -25,9 +26,9 @@
         <a href="#features">功能</a>
         <a href="#privacy">隐私</a>
         <a href="#faq">常见问题</a>
-        <a href="https://github.com/iamyanyahui/workdelta/discussions">社区</a>
+        <a href="https://github.com/work-delta/workdelta/discussions">社区</a>
       </nav>
-      <a class="button button-small button-dark" href="https://github.com/iamyanyahui/workdelta/releases/latest">
+      <a class="button button-small button-dark" href="https://github.com/work-delta/workdelta/releases/latest/download/WorkDelta-Setup.exe">
         下载 Windows 版
       </a>
       <button class="menu-button" type="button" aria-label="打开导航" aria-expanded="false">
@@ -36,6 +37,7 @@
     </div>
   </header>
 
+
   <main id="main">
     <section class="hero shell" id="top">
       <div class="hero-copy">
@@ -43,20 +45,18 @@
         <h1><span>让每一份工作，</span><br><em>都有迹可循。</em></h1>
         <p class="hero-description">添加项目文件夹，工迹会在后台安静记录有效变化，自动整理今天做了什么、何时做的，以及改动过哪些文件。</p>
         <div class="hero-actions">
-          <a class="button button-primary" href="https://github.com/iamyanyahui/workdelta/releases/latest">
+          <a class="button button-primary" href="https://github.com/work-delta/workdelta/releases/latest/download/WorkDelta-Setup.exe">
             <span>免费下载</span>
             <small>适用于 Windows 10 / 11</small>
           </a>
-          <a hidden aria-hidden="true" href="#">
-            在 GitHub 查看源码 <span aria-hidden="true">↗</span>
-          </a>
-        </div>
+                  </div>
         <ul class="hero-notes" aria-label="产品特点">
           <li>无需账号</li>
           <li>无需联网</li>
-          <li>开源免费</li>
+          <li>免费使用</li>
         </ul>
       </div>
+
 
       <div class="product-stage" aria-label="工迹应用界面预览">
         <div class="stage-orbit orbit-one"></div>
@@ -106,16 +106,18 @@
       </div>
     </section>
 
+
     <section class="trust-strip">
       <div class="shell trust-grid">
         <p>不是监控软件。<strong>只记录项目文件的变化时间。</strong></p>
         <div>
           <span><b>100%</b> 本地运行</span>
           <span><b>0</b> 项数据上传</span>
-          <span><b>MIT</b> 开源许可</span>
+          <span><b>0</b> 个账号要求</span>
         </div>
       </div>
     </section>
+
 
     <section class="section shell" id="features">
       <div class="section-heading">
@@ -145,7 +147,7 @@
           <div class="feature-icon">△</div>
           <span class="feature-index">03</span>
           <h3>内容检查点</h3>
-          <p>使用隔离的 Git 镜像保留文本内容检查点，不会修改源项目，也不会在项目中创建 .git。</p>
+          <p>在隔离的本地历史空间中保留文本内容检查点，不会修改你的项目文件。</p>
           <div class="code-lines" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
         </article>
         <article class="feature-card">
@@ -157,21 +159,22 @@
       </div>
     </section>
 
+
     <section class="privacy-section" id="privacy">
       <div class="shell privacy-grid">
         <div class="privacy-copy">
           <p class="eyebrow light"><span></span> 隐私边界</p>
           <h2>你的工作，<br><em>只属于你。</em></h2>
           <p>工迹不需要账号，不读取真实邮箱，也不把项目内容发送到网络。活动数据库和历史检查点全部保存在你的 Windows 本机。</p>
-          <a class="text-link light-link" href="https://github.com/iamyanyahui/workdelta/blob/main/SECURITY.md">阅读完整安全说明 <span>↗</span></a>
-        </div>
+                  </div>
         <div class="privacy-list">
           <article><span>01</span><div><h3>不记录键盘</h3><p>只观察你主动添加的项目文件夹中的文件变化。</p></div></article>
           <article><span>02</span><div><h3>不上传内容</h3><p>无需网络服务，数据默认留在本地应用目录。</p></div></article>
-          <article><span>03</span><div><h3>规则公开透明</h3><p>源代码使用 MIT 许可开放，可直接检查记录逻辑。</p></div></article>
+          <article><span>03</span><div><h3>边界清晰可控</h3><p>只处理你主动添加的项目文件夹，记录范围始终由你决定。</p></div></article>
         </div>
       </div>
     </section>
+
 
     <section class="section shell workflow-section">
       <div class="section-heading centered">
@@ -185,6 +188,7 @@
       </ol>
     </section>
 
+
     <section class="section faq-section shell" id="faq">
       <div class="section-heading">
         <p class="eyebrow"><span></span> 常见问题</p>
@@ -196,8 +200,8 @@
           <p>不会。它只观察你主动添加的项目文件夹，不记录键盘、鼠标、应用使用情况或网页浏览记录。</p>
         </details>
         <details>
-          <summary>它会修改我的 Git 仓库吗？<i></i></summary>
-          <p>不会。内容检查点保存在独立的本地镜像中，源项目不会被初始化或修改 Git 配置。</p>
+          <summary>它会修改我的项目文件吗？<i></i></summary>
+          <p>不会。内容检查点保存在独立的本地历史空间中，不会改写你原来的项目文件。</p>
         </details>
         <details>
           <summary>工作时间是如何计算的？<i></i></summary>
@@ -209,10 +213,11 @@
         </details>
         <details>
           <summary>发现问题或想建议功能怎么办？<i></i></summary>
-          <p>欢迎前往 GitHub Discussions 交流使用经验和功能想法；明确的程序问题也可以提交 GitHub Issue。</p>
+          <p>欢迎前往社区交流使用经验、反馈问题和提出功能想法。</p>
         </details>
       </div>
     </section>
+
 
     <section class="cta-section shell">
       <div class="cta-panel">
@@ -221,23 +226,25 @@
         <h2>别再靠记忆，<br>回想今天做了什么。</h2>
         <p>免费下载工迹，让每一次有效变化都有迹可循。</p>
         <div class="cta-actions">
-          <a class="button button-light" href="https://github.com/iamyanyahui/workdelta/releases/latest">下载 Windows 版</a>
-          <a class="text-link light-link" href="https://github.com/iamyanyahui/workdelta/discussions">进入社区 <span>↗</span></a>
+          <a class="button button-light" href="https://github.com/work-delta/workdelta/releases/latest/download/WorkDelta-Setup.exe">下载 Windows 版</a>
+          <a class="text-link light-link" href="https://github.com/work-delta/workdelta/discussions">进入社区 <span>↗</span></a>
         </div>
       </div>
     </section>
   </main>
 
+
   <footer class="footer">
     <div class="shell footer-grid">
       <div><a class="brand" href="#top"><span class="brand-mark">Δ</span><span>工迹 <strong>WorkDelta</strong></span></a><p>让每一份工作，都有迹可循。</p></div>
       <div class="footer-links">
-        <span><b>产品</b><a href="#features">功能</a><a href="https://github.com/iamyanyahui/workdelta/releases">下载</a><a href="#faq">常见问题</a></span>
-        <span><b>社区</b><a href="https://github.com/iamyanyahui/workdelta">GitHub</a><a href="https://github.com/iamyanyahui/workdelta/discussions">Discussions</a><a href="https://github.com/iamyanyahui/workdelta/issues">Issues</a></span>
+        <span><b>产品</b><a href="#features">功能</a><a href="https://github.com/work-delta/workdelta/releases">下载</a><a href="#faq">常见问题</a></span>
+        <span><b>社区</b><a href="https://github.com/work-delta/workdelta/discussions">交流与反馈</a><a href="https://github.com/work-delta/workdelta/issues">问题反馈</a></span>
       </div>
     </div>
-    <div class="shell footer-bottom"><span>© <span id="year">2026</span> WorkDelta Contributors</span><span>开源 · 本地优先 · 为专注工作而做</span></div>
+    <div class="shell footer-bottom"><span>© <span id="year">2026</span> WorkDelta</span><span>免费 · 本地优先 · 为专注工作而做</span></div>
   </footer>
+
 
   <script src="script.js?v=20261006"></script>
 </body>
