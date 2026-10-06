@@ -42,6 +42,7 @@ button { font: inherit; }
 .eyebrow span { display: inline-block; width: 22px; height: 2px; margin-right: 9px; vertical-align: middle; background: var(--blue); }
 .hero h1, .section-heading h2, .privacy-copy h2, .cta-panel h2 { margin: 0; font-family: var(--serif); font-weight: 500; letter-spacing: -.055em; line-height: .98; }
 .hero h1 { font-size: clamp(52px, 5.3vw, 66px); }
+.hero h1 > span, .hero h1 > em { white-space: nowrap; }
 .hero h1 em, .privacy-copy h2 em { color: var(--blue); font-weight: inherit; }
 .hero-description { max-width: 510px; margin: 28px 0 0; color: #60697a; font-size: 17px; line-height: 1.85; }
 .hero-actions { display: flex; align-items: center; gap: 28px; margin-top: 34px; }
