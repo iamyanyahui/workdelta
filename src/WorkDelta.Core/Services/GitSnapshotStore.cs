@@ -7,7 +7,7 @@ public sealed class GitSnapshotStore(string repositoriesRoot, PathPolicy pathPol
 {
     private readonly string _repositoriesRoot = Path.GetFullPath(repositoriesRoot);
     private readonly PathPolicy _pathPolicy = pathPolicy;
-    private readonly SemaphoreSlim _gate = new(1, 1);
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, SemaphoreSlim> _gates = new();
 
     public string GetRepositoryPath(string projectId) => Path.Combine(_repositoriesRoot, projectId, "worktree");
 
@@ -16,7 +16,8 @@ public sealed class GitSnapshotStore(string repositoriesRoot, PathPolicy pathPol
         AppIdentity identity,
         CancellationToken cancellationToken = default)
     {
-        await _gate.WaitAsync(cancellationToken);
+        var gate = GetGate(project.Id);
+        await gate.WaitAsync(cancellationToken);
         try
         {
             return await Task.Run(() =>
@@ -28,7 +29,7 @@ public sealed class GitSnapshotStore(string repositoriesRoot, PathPolicy pathPol
         }
         finally
         {
-            _gate.Release();
+            gate.Release();
         }
     }
 
@@ -39,7 +40,8 @@ public sealed class GitSnapshotStore(string repositoriesRoot, PathPolicy pathPol
         string message,
         CancellationToken cancellationToken = default)
     {
-        await _gate.WaitAsync(cancellationToken);
+        var gate = GetGate(project.Id);
+        await gate.WaitAsync(cancellationToken);
         try
         {
             return await Task.Run(() =>
@@ -56,7 +58,7 @@ public sealed class GitSnapshotStore(string repositoriesRoot, PathPolicy pathPol
         }
         finally
         {
-            _gate.Release();
+            gate.Release();
         }
     }
 
@@ -65,7 +67,8 @@ public sealed class GitSnapshotStore(string repositoriesRoot, PathPolicy pathPol
         AppIdentity identity,
         CancellationToken cancellationToken = default)
     {
-        await _gate.WaitAsync(cancellationToken);
+        var gate = GetGate(project.Id);
+        await gate.WaitAsync(cancellationToken);
         try
         {
             return await Task.Run(() =>
@@ -77,7 +80,139 @@ public sealed class GitSnapshotStore(string repositoriesRoot, PathPolicy pathPol
         }
         finally
         {
-            _gate.Release();
+            gate.Release();
+        }
+    }
+
+    public async Task<IReadOnlyList<SnapshotFileChange>> GetSnapshotChangesAsync(
+        string projectId,
+        string commitId,
+        CancellationToken cancellationToken = default)
+    {
+        var gate = GetGate(projectId);
+        await gate.WaitAsync(cancellationToken);
+        try
+        {
+            return await Task.Run(() =>
+            {
+                using var repository = new Repository(GetRepositoryPath(projectId));
+                var commit = repository.Lookup<Commit>(commitId)
+                    ?? throw new InvalidOperationException("找不到对应的历史检查点。");
+                var parent = commit.Parents.FirstOrDefault();
+                var changes = repository.Diff.Compare<TreeChanges>(parent?.Tree, commit.Tree);
+                var result = new List<SnapshotFileChange>();
+                foreach (var change in changes)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var oldPath = string.IsNullOrWhiteSpace(change.OldPath) ? change.Path : change.OldPath;
+                    var oldText = parent is null ? string.Empty : ReadText(parent, oldPath);
+                    var newText = ReadText(commit, change.Path);
+                    var diff = BuildTextDiff(oldText, newText, change.Path);
+                    result.Add(new SnapshotFileChange(
+                        change.Path,
+                        FriendlyStatus(change.Status),
+                        diff.Added,
+                        diff.Deleted,
+                        diff.Text));
+                }
+
+                return (IReadOnlyList<SnapshotFileChange>)result;
+            }, cancellationToken);
+        }
+        finally
+        {
+            gate.Release();
+        }
+    }
+
+    public async Task RestoreFilesAsync(
+        ProjectRecord project,
+        string commitId,
+        IReadOnlyCollection<string> paths,
+        CancellationToken cancellationToken = default)
+    {
+        var gate = GetGate(project.Id);
+        await gate.WaitAsync(cancellationToken);
+        try
+        {
+            await Task.Run(() =>
+            {
+                using var repository = new Repository(GetRepositoryPath(project.Id));
+                var commit = repository.Lookup<Commit>(commitId)
+                    ?? throw new InvalidOperationException("找不到对应的历史检查点。");
+                foreach (var relativePath in paths.Distinct(StringComparer.OrdinalIgnoreCase))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    RestorePath(project.Path, commit, relativePath);
+                }
+            }, cancellationToken);
+        }
+        finally
+        {
+            gate.Release();
+        }
+    }
+
+    public async Task RestoreSnapshotAsync(
+        ProjectRecord project,
+        string commitId,
+        CancellationToken cancellationToken = default)
+    {
+        var gate = GetGate(project.Id);
+        await gate.WaitAsync(cancellationToken);
+        try
+        {
+            await Task.Run(() =>
+            {
+                using var repository = new Repository(GetRepositoryPath(project.Id));
+                var commit = repository.Lookup<Commit>(commitId)
+                    ?? throw new InvalidOperationException("找不到对应的历史检查点。");
+                var targetPaths = EnumerateTreePaths(commit.Tree)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                foreach (var file in EnumerateFilesSafely(project.Path))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (!_pathPolicy.IsTrackableFile(project.Path, file))
+                    {
+                        continue;
+                    }
+
+                    var relative = NormalizeRelative(Path.GetRelativePath(project.Path, file));
+                    if (!targetPaths.Contains(relative))
+                    {
+                        File.Delete(file);
+                    }
+                }
+
+                foreach (var relativePath in targetPaths)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    RestorePath(project.Path, commit, relativePath);
+                }
+            }, cancellationToken);
+        }
+        finally
+        {
+            gate.Release();
+        }
+    }
+
+    public async Task DeleteRepositoryAsync(string projectId, CancellationToken cancellationToken = default)
+    {
+        var gate = GetGate(projectId);
+        await gate.WaitAsync(cancellationToken);
+        try
+        {
+            var root = Path.Combine(_repositoriesRoot, projectId);
+            if (Directory.Exists(root))
+            {
+                await Task.Run(() => Directory.Delete(root, true), cancellationToken);
+            }
+        }
+        finally
+        {
+            gate.Release();
+            _gates.TryRemove(projectId, out _);
         }
     }
 
@@ -185,6 +320,142 @@ public sealed class GitSnapshotStore(string repositoriesRoot, PathPolicy pathPol
                             $"WorkDelta-Device-Id: {identity.DeviceId}";
         var commit = repository.Commit(commitMessage, author, committer);
         return new SnapshotResult(commit.Sha, now.ToUniversalTime(), added, modified, deleted, true);
+    }
+
+    private SemaphoreSlim GetGate(string projectId) =>
+        _gates.GetOrAdd(projectId, _ => new SemaphoreSlim(1, 1));
+
+    private static string FriendlyStatus(ChangeKind status) => status switch
+    {
+        ChangeKind.Added => "新增",
+        ChangeKind.Deleted => "删除",
+        ChangeKind.Renamed => "重命名",
+        ChangeKind.Copied => "复制",
+        ChangeKind.Modified => "修改",
+        _ => "变化"
+    };
+
+    private static string ReadText(Commit commit, string path)
+    {
+        if (string.IsNullOrWhiteSpace(path) || commit.Tree[path]?.Target is not Blob blob)
+        {
+            return string.Empty;
+        }
+
+        using var stream = blob.GetContentStream();
+        using var reader = new StreamReader(stream, detectEncodingFromByteOrderMarks: true);
+        return reader.ReadToEnd();
+    }
+
+    private static (string Text, int Added, int Deleted) BuildTextDiff(
+        string oldText,
+        string newText,
+        string path)
+    {
+        var oldLines = NormalizeLines(oldText);
+        var newLines = NormalizeLines(newText);
+        if ((long)oldLines.Length * newLines.Length > 1_500_000)
+        {
+            var changed = Math.Max(oldLines.Length, newLines.Length);
+            return ($"--- 旧版本/{path}\n+++ 新版本/{path}\n@@ 文件较大，共约 {changed} 行；恢复功能仍可正常使用。",
+                Math.Max(0, newLines.Length - oldLines.Length),
+                Math.Max(0, oldLines.Length - newLines.Length));
+        }
+
+        var lengths = new int[oldLines.Length + 1, newLines.Length + 1];
+        for (var oldIndex = oldLines.Length - 1; oldIndex >= 0; oldIndex--)
+        {
+            for (var newIndex = newLines.Length - 1; newIndex >= 0; newIndex--)
+            {
+                lengths[oldIndex, newIndex] = oldLines[oldIndex] == newLines[newIndex]
+                    ? lengths[oldIndex + 1, newIndex + 1] + 1
+                    : Math.Max(lengths[oldIndex + 1, newIndex], lengths[oldIndex, newIndex + 1]);
+            }
+        }
+
+        var builder = new System.Text.StringBuilder()
+            .AppendLine($"--- 旧版本/{path}")
+            .AppendLine($"+++ 新版本/{path}");
+        var i = 0;
+        var j = 0;
+        var added = 0;
+        var deleted = 0;
+        while (i < oldLines.Length && j < newLines.Length)
+        {
+            if (oldLines[i] == newLines[j])
+            {
+                builder.Append("  ").AppendLine(oldLines[i]);
+                i++;
+                j++;
+            }
+            else if (lengths[i + 1, j] >= lengths[i, j + 1])
+            {
+                builder.Append("- ").AppendLine(oldLines[i++]);
+                deleted++;
+            }
+            else
+            {
+                builder.Append("+ ").AppendLine(newLines[j++]);
+                added++;
+            }
+        }
+
+        while (i < oldLines.Length)
+        {
+            builder.Append("- ").AppendLine(oldLines[i++]);
+            deleted++;
+        }
+        while (j < newLines.Length)
+        {
+            builder.Append("+ ").AppendLine(newLines[j++]);
+            added++;
+        }
+
+        return (builder.ToString(), added, deleted);
+    }
+
+    private static string[] NormalizeLines(string text) =>
+        text.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
+
+    private static IEnumerable<string> EnumerateTreePaths(Tree tree, string prefix = "")
+    {
+        foreach (var entry in tree)
+        {
+            var path = string.IsNullOrEmpty(prefix) ? entry.Name : $"{prefix}/{entry.Name}";
+            if (entry.Target is Tree child)
+            {
+                foreach (var childPath in EnumerateTreePaths(child, path))
+                {
+                    yield return childPath;
+                }
+            }
+            else if (entry.Target is Blob)
+            {
+                yield return path;
+            }
+        }
+    }
+
+    private static void RestorePath(string projectRoot, Commit commit, string relativePath)
+    {
+        var destination = ResolveDestination(projectRoot, relativePath);
+        if (commit.Tree[relativePath]?.Target is not Blob blob)
+        {
+            if (File.Exists(destination))
+            {
+                File.Delete(destination);
+            }
+            return;
+        }
+
+        var directory = Path.GetDirectoryName(destination);
+        if (directory is not null)
+        {
+            Directory.CreateDirectory(directory);
+        }
+        using var input = blob.GetContentStream();
+        using var output = new FileStream(destination, FileMode.Create, FileAccess.Write, FileShare.Read);
+        input.CopyTo(output);
     }
 
     private static string ResolveDestination(string worktree, string relativePath)

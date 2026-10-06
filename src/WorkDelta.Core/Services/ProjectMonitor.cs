@@ -74,6 +74,8 @@ internal sealed class ProjectMonitor : IDisposable
                     Path.GetRelativePath(_project.Path, item.Key).Replace('\\', '/'),
                     item.Value))
                 .Where(change => !change.RelativePath.StartsWith("..", StringComparison.Ordinal))
+                .Where(change => change.Kind == FileChangeKind.Deleted ||
+                                 _pathPolicy.IsTrackableFile(_project.Path, change.FullPath))
                 .ToArray();
             if (changes.Length > 0)
             {

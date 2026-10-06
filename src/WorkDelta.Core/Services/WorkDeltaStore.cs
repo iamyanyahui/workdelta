@@ -7,6 +7,7 @@ public sealed class WorkDeltaStore
 {
     private static readonly TimeSpan SessionGap = TimeSpan.FromMinutes(15);
     private readonly string _connectionString;
+    public string DatabasePath { get; }
 
     public WorkDeltaStore(string databasePath)
     {
@@ -17,9 +18,10 @@ public sealed class WorkDeltaStore
             Directory.CreateDirectory(directory);
         }
 
+        DatabasePath = Path.GetFullPath(databasePath);
         _connectionString = new SqliteConnectionStringBuilder
         {
-            DataSource = databasePath,
+            DataSource = DatabasePath,
             Mode = SqliteOpenMode.ReadWriteCreate,
             Cache = SqliteCacheMode.Shared,
             Pooling = true,
@@ -88,6 +90,11 @@ public sealed class WorkDeltaStore
 
             CREATE INDEX IF NOT EXISTS ix_snapshots_project_time
                 ON snapshots(project_id, created_at_utc DESC);
+
+            CREATE TABLE IF NOT EXISTS project_preferences (
+                project_id TEXT PRIMARY KEY REFERENCES projects(id) ON DELETE CASCADE,
+                ignore_patterns TEXT NOT NULL DEFAULT ''
+            );
             """;
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
@@ -203,6 +210,65 @@ public sealed class WorkDeltaStore
         command.CommandText = "UPDATE projects SET is_paused = $paused WHERE id = $id;";
         command.Parameters.AddWithValue("$paused", paused ? 1 : 0);
         command.Parameters.AddWithValue("$id", projectId);
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    public async Task<ProjectRecord> UpdateProjectAsync(
+        string projectId,
+        string name,
+        string path,
+        CancellationToken cancellationToken = default)
+    {
+        var normalizedPath = Path.TrimEndingDirectorySeparator(Path.GetFullPath(path));
+        if (!Directory.Exists(normalizedPath))
+        {
+            throw new DirectoryNotFoundException($"项目文件夹不存在：{normalizedPath}");
+        }
+
+        var trimmedName = name.Trim();
+        ArgumentException.ThrowIfNullOrWhiteSpace(trimmedName);
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "UPDATE projects SET name = $name, path = $path WHERE id = $id;";
+        command.Parameters.AddWithValue("$name", trimmedName);
+        command.Parameters.AddWithValue("$path", normalizedPath);
+        command.Parameters.AddWithValue("$id", projectId);
+        await command.ExecuteNonQueryAsync(cancellationToken);
+        return await GetProjectAsync(projectId, cancellationToken)
+            ?? throw new InvalidOperationException("项目不存在。");
+    }
+
+    public async Task DeleteProjectAsync(string projectId, CancellationToken cancellationToken = default)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "DELETE FROM projects WHERE id = $id;";
+        command.Parameters.AddWithValue("$id", projectId);
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    public async Task<string> GetIgnorePatternsAsync(string projectId, CancellationToken cancellationToken = default)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT ignore_patterns FROM project_preferences WHERE project_id = $id;";
+        command.Parameters.AddWithValue("$id", projectId);
+        return (string?)await command.ExecuteScalarAsync(cancellationToken) ?? string.Empty;
+    }
+
+    public async Task SetIgnorePatternsAsync(
+        string projectId,
+        string patterns,
+        CancellationToken cancellationToken = default)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            INSERT INTO project_preferences(project_id, ignore_patterns) VALUES($id, $patterns)
+            ON CONFLICT(project_id) DO UPDATE SET ignore_patterns = excluded.ignore_patterns;
+            """;
+        command.Parameters.AddWithValue("$id", projectId);
+        command.Parameters.AddWithValue("$patterns", patterns.Trim());
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
@@ -338,6 +404,140 @@ public sealed class WorkDeltaStore
             timeline.SelectMany(item => item.Files).Distinct(StringComparer.OrdinalIgnoreCase).Count(),
             timeline.Sum(item => item.ChangeCount),
             TimeSpan.FromTicks(timeline.Sum(item => item.ActiveDuration.Ticks)));
+    }
+
+    public async Task<IReadOnlyList<ProjectActivityReport>> GetActivityReportsAsync(
+        DateOnly startDate,
+        DateOnly endDate,
+        TimeZoneInfo timeZone,
+        string? projectId = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (endDate < startDate)
+        {
+            (startDate, endDate) = (endDate, startDate);
+        }
+
+        var projects = (await GetProjectsAsync(cancellationToken))
+            .Where(project => projectId is null || project.Id == projectId)
+            .ToArray();
+        var reports = new List<ProjectActivityReport>(projects.Length);
+        foreach (var project in projects)
+        {
+            var entries = await GetTimelineRangeAsync(project.Id, startDate, endDate, timeZone, cancellationToken);
+            reports.Add(new ProjectActivityReport(
+                project.Id,
+                project.Name,
+                startDate,
+                endDate,
+                entries.Count,
+                entries.SelectMany(item => item.Files).Distinct(StringComparer.OrdinalIgnoreCase).Count(),
+                entries.Sum(item => item.ChangeCount),
+                TimeSpan.FromTicks(entries.Sum(item => item.ActiveDuration.Ticks))));
+        }
+
+        return reports
+            .Where(report => report.SessionCount > 0 || projectId is not null)
+            .OrderByDescending(report => report.ActiveDuration)
+            .ToArray();
+    }
+
+    public async Task<IReadOnlyList<SnapshotRecord>> GetSnapshotsAsync(
+        string projectId,
+        CancellationToken cancellationToken = default)
+    {
+        var snapshots = new List<SnapshotRecord>();
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT id, project_id, commit_id, created_at_utc, kind,
+                   added_count, modified_count, deleted_count
+            FROM snapshots WHERE project_id = $project
+            ORDER BY created_at_utc DESC;
+            """;
+        command.Parameters.AddWithValue("$project", projectId);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            snapshots.Add(new SnapshotRecord(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                FromDb(reader.GetString(3)),
+                reader.GetString(4),
+                reader.GetInt32(5),
+                reader.GetInt32(6),
+                reader.GetInt32(7)));
+        }
+
+        return snapshots;
+    }
+
+    public async Task CreateDatabaseBackupAsync(string destinationPath, CancellationToken cancellationToken = default)
+    {
+        var destinationDirectory = Path.GetDirectoryName(Path.GetFullPath(destinationPath));
+        if (destinationDirectory is not null)
+        {
+            Directory.CreateDirectory(destinationDirectory);
+        }
+
+        await using var source = await OpenAsync(cancellationToken);
+        var destinationBuilder = new SqliteConnectionStringBuilder
+        {
+            DataSource = destinationPath,
+            Mode = SqliteOpenMode.ReadWriteCreate
+        };
+        await using var destination = new SqliteConnection(destinationBuilder.ToString());
+        await destination.OpenAsync(cancellationToken);
+        source.BackupDatabase(destination);
+    }
+
+    private async Task<IReadOnlyList<TimelineEntry>> GetTimelineRangeAsync(
+        string projectId,
+        DateOnly startDate,
+        DateOnly endDate,
+        TimeZoneInfo timeZone,
+        CancellationToken cancellationToken)
+    {
+        var startLocal = startDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Unspecified);
+        var endLocal = endDate.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Unspecified);
+        var startUtc = TimeZoneInfo.ConvertTimeToUtc(startLocal, timeZone);
+        var endUtc = TimeZoneInfo.ConvertTimeToUtc(endLocal, timeZone);
+        var entries = new List<TimelineEntry>();
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT s.id, s.started_at_utc, s.last_activity_at_utc,
+                   COUNT(e.id) AS change_count,
+                   COUNT(DISTINCT e.relative_path) AS file_count,
+                   GROUP_CONCAT(DISTINCT e.relative_path) AS files
+            FROM work_sessions s
+            LEFT JOIN activity_events e ON e.session_id = s.id
+            WHERE s.project_id = $project
+              AND s.last_activity_at_utc >= $start
+              AND s.started_at_utc < $end
+            GROUP BY s.id
+            ORDER BY s.started_at_utc DESC;
+            """;
+        command.Parameters.AddWithValue("$project", projectId);
+        command.Parameters.AddWithValue("$start", ToDb(startUtc));
+        command.Parameters.AddWithValue("$end", ToDb(endUtc));
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            var files = reader.IsDBNull(5)
+                ? []
+                : reader.GetString(5).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            entries.Add(new TimelineEntry(
+                reader.GetString(0),
+                FromDb(reader.GetString(1)),
+                FromDb(reader.GetString(2)),
+                reader.GetInt32(3),
+                reader.GetInt32(4),
+                files));
+        }
+
+        return entries;
     }
 
     public async Task AddSnapshotAsync(ProjectRecord project, SnapshotResult snapshot, string kind, CancellationToken cancellationToken = default)

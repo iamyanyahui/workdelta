@@ -1,0 +1,24 @@
+<Window x:Class="WorkDelta.App.BackupWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="备份与导入 - 工迹 WorkDelta" Width="560" Height="350"
+        ResizeMode="NoResize" WindowStartupLocation="CenterOwner"
+        Background="#F5F7FB" FontFamily="Segoe UI, Microsoft YaHei UI">
+    <StackPanel Margin="28">
+        <TextBlock Text="备份与导入" FontSize="23" FontWeight="SemiBold" />
+        <Border Background="White" CornerRadius="10" Padding="18" Margin="0,20,0,12">
+            <StackPanel>
+                <TextBlock Text="导出完整备份" FontSize="16" FontWeight="SemiBold" />
+                <TextBlock Text="包含项目列表、工作时间线以及所有本地 Git 检查点。" Foreground="#667085" Margin="0,7,0,12" />
+                <Button Content="导出 .workdelta 备份文件" HorizontalAlignment="Left" Click="Export_Click" />
+            </StackPanel>
+        </Border>
+        <Border Background="White" CornerRadius="10" Padding="18">
+            <StackPanel>
+                <TextBlock Text="从备份恢复" FontSize="16" FontWeight="SemiBold" />
+                <TextBlock Text="恢复会替换本机现有记录，应用将自动重新启动。" Foreground="#667085" Margin="0,7,0,12" />
+                <Button Content="选择备份并恢复" HorizontalAlignment="Left" Click="Restore_Click" />
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</Window>

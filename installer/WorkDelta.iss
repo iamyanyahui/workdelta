@@ -1,5 +1,5 @@
 #define MyAppName "工迹 WorkDelta"
-#define MyAppVersion "0.1.0"
+#define MyAppVersion "0.2.0"
 #define MyAppPublisher "WorkDelta Contributors"
 #define MyAppExeName "WorkDelta.exe"
 

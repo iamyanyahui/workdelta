@@ -20,6 +20,24 @@ public sealed class PathPolicy
         ".sqlite", ".sqlite3"
     };
 
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, string[]> _customRules =
+        new(StringComparer.OrdinalIgnoreCase);
+
+    public void SetCustomRules(string rootPath, string? patterns)
+    {
+        var normalizedRoot = Path.TrimEndingDirectorySeparator(Path.GetFullPath(rootPath));
+        var rules = (patterns ?? string.Empty)
+            .Split(['\r', '\n', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(rule => !rule.StartsWith('#'))
+            .Select(rule => rule.Replace('\\', '/').TrimStart('/'))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        _customRules[normalizedRoot] = rules;
+    }
+
+    public void RemoveCustomRules(string rootPath) =>
+        _customRules.TryRemove(Path.TrimEndingDirectorySeparator(Path.GetFullPath(rootPath)), out _);
+
     public bool ShouldIgnore(string rootPath, string fullPath)
     {
         string relativePath;
@@ -33,6 +51,14 @@ public sealed class PathPolicy
         }
 
         if (relativePath.StartsWith("..", StringComparison.Ordinal) || Path.IsPathRooted(relativePath))
+        {
+            return true;
+        }
+
+        var normalizedRoot = Path.TrimEndingDirectorySeparator(Path.GetFullPath(rootPath));
+        var normalizedRelative = relativePath.Replace('\\', '/');
+        if (_customRules.TryGetValue(normalizedRoot, out var rules) &&
+            rules.Any(rule => MatchesRule(normalizedRelative, rule)))
         {
             return true;
         }
@@ -53,6 +79,30 @@ public sealed class PathPolicy
         }
 
         return IgnoredExtensions.Contains(Path.GetExtension(relativePath));
+    }
+
+    private static bool MatchesRule(string relativePath, string rule)
+    {
+        if (string.IsNullOrWhiteSpace(rule))
+        {
+            return false;
+        }
+
+        var directoryRule = rule.EndsWith('/');
+        var candidate = directoryRule ? relativePath + "/" : relativePath;
+        if (directoryRule && candidate.StartsWith(rule, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return System.IO.Enumeration.FileSystemName.MatchesSimpleExpression(
+                   rule,
+                   relativePath,
+                   ignoreCase: true) ||
+               (!rule.Contains('/') && System.IO.Enumeration.FileSystemName.MatchesSimpleExpression(
+                   rule,
+                   Path.GetFileName(relativePath),
+                   ignoreCase: true));
     }
 
     public bool IsTrackableFile(string rootPath, string fullPath)

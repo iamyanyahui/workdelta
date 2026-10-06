@@ -28,6 +28,7 @@ public partial class MainWindow : Window
         TimelineList.ItemsSource = _timeline;
         IdentityText.Text = $"{app.Identity.DisplayName} · {app.Identity.DeviceName}";
         StartupCheckBox.IsChecked = app.StartupRegistration.IsEnabled;
+        ReportDatePicker.SelectedDate = DateTime.Today;
         Loaded += MainWindow_Loaded;
         Closing += MainWindow_Closing;
         _app.Engine.ActivityRecorded += Engine_ActivityRecorded;
@@ -77,9 +78,14 @@ public partial class MainWindow : Window
             return;
         }
 
+        await AddProjectPathAsync(dialog.FolderName);
+    }
+
+    private async Task AddProjectPathAsync(string path)
+    {
         await RunBusyAsync("正在建立本地项目基线…", async () =>
         {
-            var project = await _app.Engine.AddProjectAsync(dialog.FolderName);
+            var project = await _app.Engine.AddProjectAsync(path);
             if (_projects.Count == 0)
             {
                 _app.StartupRegistration.SetEnabled(true);
@@ -111,9 +117,9 @@ public partial class MainWindow : Window
 
     private async Task LoadDashboardAsync(ProjectRecord project)
     {
-        var today = DateOnly.FromDateTime(DateTime.Now);
-        var entries = await _app.Store.GetTimelineAsync(project.Id, today, TimeZoneInfo.Local);
-        var summary = await _app.Store.GetDashboardSummaryAsync(project.Id, today, TimeZoneInfo.Local);
+        var selectedDate = DateOnly.FromDateTime(ReportDatePicker.SelectedDate ?? DateTime.Today);
+        var entries = await _app.Store.GetTimelineAsync(project.Id, selectedDate, TimeZoneInfo.Local);
+        var summary = await _app.Store.GetDashboardSummaryAsync(project.Id, selectedDate, TimeZoneInfo.Local);
         _timeline.Clear();
         foreach (var entry in entries)
         {
@@ -123,6 +129,16 @@ public partial class MainWindow : Window
         DurationText.Text = FormatDuration(summary.ActiveDuration);
         FilesText.Text = summary.FileCount.ToString();
         ChangesText.Text = summary.ChangeCount.ToString();
+        ActivityCaption.Text = $"{selectedDate:MM月dd日}项目活动";
+        TimelineCaption.Text = $"{selectedDate:yyyy年MM月dd日}工作时间线";
+    }
+
+    private async void ReportDatePicker_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loaded && ProjectList.SelectedItem is ProjectRecord project)
+        {
+            await LoadDashboardAsync(project);
+        }
     }
 
     private async void PauseButton_Click(object sender, RoutedEventArgs e)
@@ -164,13 +180,13 @@ public partial class MainWindow : Window
             return;
         }
 
-        var today = DateOnly.FromDateTime(DateTime.Now);
-        var entries = await _app.Store.GetTimelineAsync(project.Id, today, TimeZoneInfo.Local);
+        var selectedDate = DateOnly.FromDateTime(ReportDatePicker.SelectedDate ?? DateTime.Today);
+        var entries = await _app.Store.GetTimelineAsync(project.Id, selectedDate, TimeZoneInfo.Local);
         var dialog = new SaveFileDialog
         {
-            Title = "导出今日工作记录",
+            Title = "导出工作记录",
             Filter = "Markdown 文件 (*.md)|*.md",
-            FileName = $"{project.Name}-{today:yyyy-MM-dd}-工作记录.md"
+            FileName = $"{project.Name}-{selectedDate:yyyy-MM-dd}-工作记录.md"
         };
         if (dialog.ShowDialog(this) != true)
         {
@@ -180,11 +196,11 @@ public partial class MainWindow : Window
         var markdown = new StringBuilder()
             .AppendLine($"# {project.Name} 工作记录")
             .AppendLine()
-            .AppendLine($"> {today:yyyy-MM-dd} · 由工迹 WorkDelta 在本机生成")
+            .AppendLine($"> {selectedDate:yyyy-MM-dd} · 由工迹 WorkDelta 在本机生成")
             .AppendLine();
         if (entries.Count == 0)
         {
-            markdown.AppendLine("今日尚未检测到有效的项目文件变化。");
+            markdown.AppendLine("所选日期尚未检测到有效的项目文件变化。");
         }
         else
         {
@@ -205,7 +221,84 @@ public partial class MainWindow : Window
         }
 
         await File.WriteAllTextAsync(dialog.FileName, markdown.ToString(), new UTF8Encoding(true));
-        MessageBox.Show(this, "今日工作记录已经导出。", "工迹 WorkDelta", MessageBoxButton.OK, MessageBoxImage.Information);
+        MessageBox.Show(this, "工作记录已经导出。", "工迹 WorkDelta", MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+
+    private void HistoryButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (ProjectList.SelectedItem is ProjectRecord project)
+        {
+            new HistoryWindow(_app, project) { Owner = this }.ShowDialog();
+        }
+    }
+
+    private async void ProjectSettingsButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (ProjectList.SelectedItem is not ProjectRecord project)
+        {
+            return;
+        }
+        var patterns = await _app.Store.GetIgnorePatternsAsync(project.Id);
+        var dialog = new ProjectSettingsWindow(project, patterns) { Owner = this };
+        if (dialog.ShowDialog() != true)
+        {
+            return;
+        }
+        if (dialog.DeleteRequested)
+        {
+            if (MessageBox.Show(this,
+                    "删除这个项目在工迹中的全部时间线和历史检查点？\n源项目文件夹不会被删除。",
+                    "确认删除项目记录", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            {
+                return;
+            }
+            await RunBusyAsync("正在删除项目记录…", async () =>
+            {
+                await _app.Engine.DeleteProjectAsync(project);
+                await ReloadProjectsAsync();
+            });
+            return;
+        }
+        await RunBusyAsync("正在更新项目设置…", async () =>
+        {
+            var updated = await _app.Engine.UpdateProjectAsync(
+                project,
+                dialog.ProjectName,
+                dialog.ProjectPath,
+                dialog.IgnorePatterns);
+            await ReloadProjectsAsync(updated.Id);
+        });
+    }
+
+    private void ReportsButton_Click(object sender, RoutedEventArgs e)
+    {
+        new ReportsWindow(_app, ProjectList.SelectedItem as ProjectRecord) { Owner = this }.ShowDialog();
+    }
+
+    private void BackupButton_Click(object sender, RoutedEventArgs e)
+    {
+        new BackupWindow(_app) { Owner = this }.ShowDialog();
+    }
+
+    private void Window_DragOver(object sender, System.Windows.DragEventArgs e)
+    {
+        e.Effects = e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop)
+            ? System.Windows.DragDropEffects.Copy
+            : System.Windows.DragDropEffects.None;
+        e.Handled = true;
+    }
+
+    private async void Window_Drop(object sender, System.Windows.DragEventArgs e)
+    {
+        if (e.Data.GetData(System.Windows.DataFormats.FileDrop) is not string[] paths)
+        {
+            return;
+        }
+        var directory = paths.FirstOrDefault(Directory.Exists);
+        if (directory is not null)
+        {
+            await AddProjectPathAsync(directory);
+        }
     }
 
     private void StartupCheckBox_Changed(object sender, RoutedEventArgs e)

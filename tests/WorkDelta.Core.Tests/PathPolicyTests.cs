@@ -27,4 +27,16 @@ public sealed class PathPolicyTests
         var fullPath = Path.Combine(root, relativePath.Replace('/', Path.DirectorySeparatorChar));
         Assert.False(new PathPolicy().ShouldIgnore(root, fullPath));
     }
+
+    [Fact]
+    public void ShouldIgnore_CustomGlob_ReturnsTrue()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "workdelta-policy-custom");
+        var policy = new PathPolicy();
+        policy.SetCustomRules(root, "generated/*\n*.secret");
+
+        Assert.True(policy.ShouldIgnore(root, Path.Combine(root, "generated", "result.txt")));
+        Assert.True(policy.ShouldIgnore(root, Path.Combine(root, "keys.secret")));
+        Assert.False(policy.ShouldIgnore(root, Path.Combine(root, "notes.txt")));
+    }
 }
