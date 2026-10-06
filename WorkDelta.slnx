@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="src/WorkDelta.Core/WorkDelta.Core.csproj" />
+  <Project Path="src/WorkDelta.App/WorkDelta.App.csproj" />
+  <Project Path="tests/WorkDelta.Core.Tests/WorkDelta.Core.Tests.csproj" />
+</Solution>
