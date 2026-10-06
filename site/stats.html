@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#f7f5ef">
+  <title>WorkDelta 下载统计</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css?v=20261006">
+  <link rel="stylesheet" href="stats.css?v=20261006">
+</head>
+<body class="stats-page">
+  <main class="stats-shell">
+    <header class="stats-header">
+      <a class="brand" href="./" aria-label="返回工迹官网">
+        <span class="brand-mark" aria-hidden="true">Δ</span>
+        <span>工迹 <strong>WorkDelta</strong></span>
+      </a>
+      <span class="stats-private">内部数据页</span>
+    </header>
+
+    <section class="stats-intro">
+      <p class="eyebrow"><span></span> 下载统计</p>
+      <h1>产品数据概览</h1>
+      <p>数据每天自动从发布记录汇总。安装包下载量是当前最接近“有多少人尝试使用”的指标，但不等同于实际安装人数或活跃用户数。</p>
+    </section>
+
+    <section class="stats-grid" aria-live="polite">
+      <article>
+        <span>安装包累计下载</span>
+        <strong id="installer-downloads">—</strong>
+        <small>所有 Windows 安装包</small>
+      </article>
+      <article>
+        <span>全部软件包下载</span>
+        <strong id="package-downloads">—</strong>
+        <small>安装包与便携版合计</small>
+      </article>
+      <article>
+        <span>最新版本下载</span>
+        <strong id="latest-downloads">—</strong>
+        <small id="latest-version">等待数据</small>
+      </article>
+      <article>
+        <span>已发布版本</span>
+        <strong id="release-count">—</strong>
+        <small>不包含草稿版本</small>
+      </article>
+    </section>
+
+    <section class="stats-history">
+      <div>
+        <p class="eyebrow"><span></span> 增长趋势</p>
+        <h2>最近 30 天</h2>
+      </div>
+      <div id="history-chart" class="history-chart" aria-label="最近 30 天安装包累计下载趋势"></div>
+      <p id="history-empty" class="history-empty" hidden>每日自动记录刚刚启用，积累两天数据后会显示趋势。</p>
+    </section>
+
+    <section class="stats-notes">
+      <h2>这些数字代表什么</h2>
+      <dl>
+        <div><dt>可以知道</dt><dd>安装包和便携版分别被下载了多少次，以及每天的累计增长。</dd></div>
+        <div><dt>暂时不知道</dt><dd>下载后是否安装、是否首次成功使用，以及一周后是否继续使用。</dd></div>
+        <div><dt>隐私边界</dt><dd>这个统计不进入桌面软件，不读取用户电脑上的任何项目、文件或身份信息。</dd></div>
+      </dl>
+    </section>
+
+    <footer class="stats-footer">
+      <span id="updated-at">正在载入数据…</span>
+      <a href="./">返回官网</a>
+    </footer>
+  </main>
+  <script src="stats.js?v=20261006"></script>
+</body>
+</html>
