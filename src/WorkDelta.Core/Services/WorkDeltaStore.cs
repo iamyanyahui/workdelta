@@ -485,7 +485,8 @@ public sealed class WorkDeltaStore
         var destinationBuilder = new SqliteConnectionStringBuilder
         {
             DataSource = destinationPath,
-            Mode = SqliteOpenMode.ReadWriteCreate
+            Mode = SqliteOpenMode.ReadWriteCreate,
+            Pooling = false
         };
         await using var destination = new SqliteConnection(destinationBuilder.ToString());
         await destination.OpenAsync(cancellationToken);
