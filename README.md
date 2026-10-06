@@ -2,7 +2,7 @@
 
 > 让每一份工作，都有迹可循。
 
-[官网](https://iamyanyahui.github.io/workdelta/) · [下载最新版](https://github.com/iamyanyahui/workdelta/releases/latest) · [社区讨论](https://github.com/iamyanyahui/workdelta/discussions)
+[官网](https://work-delta.github.io/workdelta/) · [下载最新版](https://github.com/work-delta/workdelta/releases/latest) · [社区讨论](https://github.com/work-delta/workdelta/discussions)
 
 WorkDelta 是一款本地优先的 Windows 工作记录工具。添加项目文件夹后，它会根据文本文件变化
 自动整理工作时间线，让你知道自己在什么时间、为哪个项目、修改了哪些内容。
