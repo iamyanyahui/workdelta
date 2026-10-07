@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using WorkDelta.App.Localization;
+using Image = System.Windows.Controls.Image;
 using MessageBox = System.Windows.MessageBox;
 
 namespace WorkDelta.App;
