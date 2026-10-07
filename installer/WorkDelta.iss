@@ -16,7 +16,6 @@ OutputBaseFilename=WorkDelta-Setup
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
-SetupIconFile=..\src\WorkDelta.App\Assets\WorkDelta.ico
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 UninstallDisplayName={#MyAppName}
