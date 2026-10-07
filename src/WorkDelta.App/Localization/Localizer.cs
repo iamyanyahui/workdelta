@@ -133,8 +133,8 @@ public static class Localizer
         ["SupportOptionalNotice"] = "Supporting is entirely optional and does not unlock products, subscriptions, or additional features.",
         ["Alipay"] = "Alipay", ["WechatPay"] = "WeChat Pay", ["PayPal"] = "PayPal",
         ["ScanWithAlipay"] = "Scan with Alipay", ["ScanWithWechat"] = "Scan with WeChat",
-        ["ScanOrOpenPayPal"] = "Scan the QR code or open PayPal in your browser. You choose the amount.",
-        ["OpenPayPal"] = "Open PayPal", ["ClickToEnlarge"] = "Click to enlarge the QR code",
+        ["ScanOrPayWithPayPal"] = "Scan the QR code, or pay with PayPal. You choose the amount.",
+        ["PayWithPayPal"] = "Pay with PayPal", ["ClickToEnlarge"] = "Click to enlarge the QR code",
         ["QrPreview"] = "Payment QR code", ["Close"] = "Close", ["PaymentOpenFailed"] = "Could not open the payment page."
     };
 
@@ -187,8 +187,8 @@ public static class Localizer
         ["SupportOptionalNotice"] = "支持完全自愿，不会解锁商品、订阅或额外功能。",
         ["Alipay"] = "支付宝", ["WechatPay"] = "微信支付", ["PayPal"] = "PayPal",
         ["ScanWithAlipay"] = "使用支付宝扫码", ["ScanWithWechat"] = "使用微信扫码",
-        ["ScanOrOpenPayPal"] = "扫码或在浏览器中打开 PayPal，支持金额由你填写。",
-        ["OpenPayPal"] = "打开 PayPal", ["ClickToEnlarge"] = "点击放大二维码",
+        ["ScanOrPayWithPayPal"] = "扫描二维码，或通过 PayPal 付款。金额由你填写。",
+        ["PayWithPayPal"] = "通过 PayPal 付款", ["ClickToEnlarge"] = "点击放大二维码",
         ["QrPreview"] = "收款二维码", ["Close"] = "关闭", ["PaymentOpenFailed"] = "无法打开付款页面。"
     };
 

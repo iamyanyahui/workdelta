@@ -50,8 +50,8 @@ const english = new Map(Object.entries({
   'WorkDelta 的全部功能均可免费使用。如果它对你有帮助，可以自愿支持后续开发；支持不会解锁商品、订阅或额外功能。': 'Every WorkDelta feature is free. If it helps you, you can voluntarily support continued development; supporting does not unlock products, subscriptions, or additional features.',
   '支付宝': 'Alipay', '微信支付': 'WeChat Pay',
   '使用支付宝扫码支持': 'Scan with Alipay', '使用微信扫码支持': 'Scan with WeChat',
-  '扫码或在浏览器中打开，支持金额由你填写。': 'Scan the QR code or open PayPal in your browser. You choose the amount.',
-  '放大二维码': 'Enlarge QR code', '打开 PayPal': 'Open PayPal',
+  '扫描二维码，或通过 PayPal 付款。金额由你填写。': 'Scan the QR code, or pay with PayPal. You choose the amount.',
+  '放大二维码': 'Enlarge QR code', '通过 PayPal 付款': 'Pay with PayPal',
   '从今天开始': 'Start today', '别再靠记忆，': 'Stop relying on memory', '回想今天做了什么。': 'to reconstruct your day.',
   '免费下载工迹，让每一次有效变化都有迹可循。': 'Download WorkDelta for free and keep every meaningful change visible.',
   '进入社区': 'Visit the community ', '让每一份工作，都有迹可循。': 'Keep a clear record of the work you do.',
@@ -99,8 +99,8 @@ function setLanguage(language) {
       ? ['Alipay payment QR code', 'WeChat Pay payment QR code', 'PayPal payment QR code']
       : ['支付宝收款二维码', '微信收款二维码', 'PayPal 付款二维码'];
     const frameLabels = useEnglish
-      ? ['Enlarge the Alipay payment QR code', 'Enlarge the WeChat Pay payment QR code', 'Open the PayPal support page']
-      : ['放大支付宝收款二维码', '放大微信收款二维码', '打开 PayPal 支持页面'];
+      ? ['Enlarge the Alipay payment QR code', 'Enlarge the WeChat Pay payment QR code', 'Pay with PayPal']
+      : ['放大支付宝收款二维码', '放大微信收款二维码', '通过 PayPal 付款'];
     paymentImages.forEach((node, index) => node.setAttribute('alt', imageLabels[index]));
     paymentFrames.forEach((node, index) => node.setAttribute('aria-label', frameLabels[index]));
   }
