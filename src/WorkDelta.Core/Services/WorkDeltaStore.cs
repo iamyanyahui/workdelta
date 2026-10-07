@@ -1,4 +1,5 @@
 using Microsoft.Data.Sqlite;
+using WorkDelta.Core.Localization;
 using WorkDelta.Core.Models;
 
 namespace WorkDelta.Core.Services;
@@ -131,12 +132,37 @@ public sealed class WorkDeltaStore
         transaction.Commit();
     }
 
+    public async Task<string?> GetSettingValueAsync(string key, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT value FROM settings WHERE key = $key;";
+        command.Parameters.AddWithValue("$key", key);
+        return (string?)await command.ExecuteScalarAsync(cancellationToken);
+    }
+
+    public async Task SetSettingValueAsync(string key, string value, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        ArgumentNullException.ThrowIfNull(value);
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            INSERT INTO settings(key, value) VALUES($key, $value)
+            ON CONFLICT(key) DO UPDATE SET value = excluded.value;
+            """;
+        command.Parameters.AddWithValue("$key", key);
+        command.Parameters.AddWithValue("$value", value);
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
     public async Task<ProjectRecord> AddProjectAsync(string path, CancellationToken cancellationToken = default)
     {
         var normalizedPath = Path.TrimEndingDirectorySeparator(Path.GetFullPath(path));
         if (!Directory.Exists(normalizedPath))
         {
-            throw new DirectoryNotFoundException($"项目文件夹不存在：{normalizedPath}");
+            throw new DirectoryNotFoundException(CoreText.Format("项目文件夹不存在：{0}", "The project folder does not exist: {0}", normalizedPath));
         }
 
         var existing = await FindProjectByPathAsync(normalizedPath, cancellationToken);
@@ -222,7 +248,7 @@ public sealed class WorkDeltaStore
         var normalizedPath = Path.TrimEndingDirectorySeparator(Path.GetFullPath(path));
         if (!Directory.Exists(normalizedPath))
         {
-            throw new DirectoryNotFoundException($"项目文件夹不存在：{normalizedPath}");
+            throw new DirectoryNotFoundException(CoreText.Format("项目文件夹不存在：{0}", "The project folder does not exist: {0}", normalizedPath));
         }
 
         var trimmedName = name.Trim();
@@ -235,7 +261,7 @@ public sealed class WorkDeltaStore
         command.Parameters.AddWithValue("$id", projectId);
         await command.ExecuteNonQueryAsync(cancellationToken);
         return await GetProjectAsync(projectId, cancellationToken)
-            ?? throw new InvalidOperationException("项目不存在。");
+            ?? throw new InvalidOperationException(CoreText.Choose("项目不存在。", "The project does not exist."));
     }
 
     public async Task DeleteProjectAsync(string projectId, CancellationToken cancellationToken = default)

@@ -8,9 +8,14 @@
   <meta property="og:title" content="工迹 WorkDelta｜让每一份工作，都有迹可循">
   <meta property="og:description" content="安静记录项目变化，自动整理工作时间线。完全本地运行，无需账号和网络。">
   <meta property="og:type" content="website">
+  <meta property="og:url" content="https://work-delta.github.io/workdelta/">
+  <meta property="og:image" content="https://work-delta.github.io/workdelta/assets/workdelta-logo.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:image" content="https://work-delta.github.io/workdelta/assets/workdelta-logo.png">
   <title>工迹 WorkDelta｜本地优先的工作记录工具</title>
-  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=20261006">
+  <link rel="icon" href="assets/workdelta-icon.png?v=20261007" type="image/png">
+  <link rel="apple-touch-icon" href="assets/workdelta-icon.png">
+  <link rel="stylesheet" href="styles.css?v=20261007-1">
 </head>
 <body>
   <a class="skip-link" href="#main">跳到主要内容</a>
@@ -18,15 +23,17 @@
   <header class="site-header">
     <div class="nav shell">
       <a class="brand" href="#top" aria-label="工迹 WorkDelta 首页">
-        <span class="brand-mark" aria-hidden="true">Δ</span>
+        <span class="brand-mark" aria-hidden="true"><img src="assets/workdelta-icon.png" alt=""></span>
         <span>工迹 <strong>WorkDelta</strong></span>
       </a>
       <nav class="nav-links" aria-label="主导航">
         <a href="#features">功能</a>
         <a href="#privacy">隐私</a>
         <a href="#faq">常见问题</a>
+        <a href="#support">支持作者</a>
         <a href="https://github.com/work-delta/workdelta/discussions">社区</a>
       </nav>
+      <button class="language-button" type="button" aria-label="切换语言">EN</button>
       <a class="button button-small button-dark" href="https://github.com/work-delta/workdelta/releases/latest/download/WorkDelta-Setup.exe">
         下载 Windows 版
       </a>
@@ -61,7 +68,7 @@
         <div class="app-window">
           <div class="app-topbar">
             <div class="app-brand">
-              <span class="app-logo">Δ</span>
+              <span class="app-logo"><img src="assets/workdelta-icon.png" alt=""></span>
               <span><b>工迹 WorkDelta</b><small>工作有迹，变化可见</small></span>
             </div>
             <span class="recording"><i></i> 本地记录中</span>
@@ -210,6 +217,46 @@
       </div>
     </section>
 
+    <section class="support-section" id="support">
+      <div class="shell support-panel">
+        <div class="support-intro">
+          <div>
+            <p class="eyebrow"><span></span> 支持作者</p>
+            <h2>让本地优先的软件，<br>继续安静地成长。</h2>
+          </div>
+          <div class="support-copy">
+            <p>WorkDelta 的全部功能均可免费使用。如果它对你有帮助，可以自愿支持后续开发；支持不会解锁商品、订阅或额外功能。</p>
+          </div>
+        </div>
+        <div class="payment-grid">
+          <article class="payment-card">
+            <h3>支付宝</h3>
+            <p>使用支付宝扫码支持</p>
+            <a class="payment-qr-frame" href="assets/support/alipay-qr.png" target="_blank" rel="noopener noreferrer" aria-label="放大支付宝收款二维码">
+              <img src="assets/support/alipay-qr.png" alt="支付宝收款二维码" loading="lazy">
+            </a>
+            <a class="payment-secondary-link" href="assets/support/alipay-qr.png" target="_blank" rel="noopener noreferrer">放大二维码</a>
+          </article>
+          <article class="payment-card">
+            <h3>微信支付</h3>
+            <p>使用微信扫码支持</p>
+            <a class="payment-qr-frame" href="assets/support/wechat-pay-qr.png" target="_blank" rel="noopener noreferrer" aria-label="放大微信收款二维码">
+              <img src="assets/support/wechat-pay-qr.png" alt="微信收款二维码" loading="lazy">
+            </a>
+            <a class="payment-secondary-link" href="assets/support/wechat-pay-qr.png" target="_blank" rel="noopener noreferrer">放大二维码</a>
+          </article>
+          <article class="payment-card payment-card-paypal">
+            <h3>PayPal</h3>
+            <p>扫码或在浏览器中打开，支持金额由你填写。</p>
+            <a class="payment-qr-frame" href="https://www.paypal.com/ncp/payment/SC8FJDJTVTBD2" target="_blank" rel="noopener noreferrer" aria-label="打开 PayPal 支持页面">
+              <img src="assets/support/paypal-qr.png" alt="PayPal 付款二维码" loading="lazy">
+            </a>
+            <a class="button payment-paypal-button" href="https://www.paypal.com/ncp/payment/SC8FJDJTVTBD2" target="_blank" rel="noopener noreferrer">打开 PayPal</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
     <section class="cta-section shell">
       <div class="cta-panel">
         <span class="cta-mark" aria-hidden="true">Δ</span>
@@ -226,7 +273,7 @@
 
   <footer class="footer">
     <div class="shell footer-grid">
-      <div><a class="brand" href="#top"><span class="brand-mark">Δ</span><span>工迹 <strong>WorkDelta</strong></span></a><p>让每一份工作，都有迹可循。</p></div>
+      <div><a class="brand" href="#top"><span class="brand-mark"><img src="assets/workdelta-icon.png" alt=""></span><span>工迹 <strong>WorkDelta</strong></span></a><p>让每一份工作，都有迹可循。</p></div>
       <div class="footer-links">
         <span><b>产品</b><a href="#features">功能</a><a href="https://github.com/work-delta/workdelta/releases/latest/download/WorkDelta-Setup.exe">下载</a><a href="#faq">常见问题</a></span>
         <span><b>社区</b><a href="https://github.com/work-delta/workdelta/discussions">交流与反馈</a><a href="https://github.com/work-delta/workdelta/discussions/categories/ideas">功能建议</a></span>
@@ -235,6 +282,6 @@
     <div class="shell footer-bottom"><span>© <span id="year">2026</span> WorkDelta</span><span>免费 · 本地优先 · 为专注工作而做</span></div>
   </footer>
 
-  <script src="script.js?v=20261006"></script>
+  <script src="script.js?v=20261007-1"></script>
 </body>
 </html>

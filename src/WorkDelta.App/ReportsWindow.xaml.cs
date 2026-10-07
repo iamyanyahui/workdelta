@@ -4,6 +4,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Win32;
+using WorkDelta.App.Localization;
 using WorkDelta.Core.Models;
 using MessageBox = System.Windows.MessageBox;
 using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
@@ -28,7 +29,7 @@ public partial class ReportsWindow : Window
             StartDatePicker.SelectedDate = monday;
             EndDatePicker.SelectedDate = today;
             var projects = await _app.Store.GetProjectsAsync();
-            ProjectFilter.Items.Add(new ProjectChoice(null, "全部项目"));
+            ProjectFilter.Items.Add(new ProjectChoice(null, Localizer.Get("AllProjects")));
             foreach (var project in projects)
             {
                 ProjectFilter.Items.Add(new ProjectChoice(project.Id, project.Name));
@@ -64,7 +65,7 @@ public partial class ReportsWindow : Window
             _rows.Add(new ReportRow(report));
         }
         var total = TimeSpan.FromTicks(reports.Sum(item => item.ActiveDuration.Ticks));
-        TotalText.Text = $"合计：{FormatDuration(total)} · {reports.Sum(item => item.FileCount)} 个文件 · {reports.Sum(item => item.ChangeCount)} 次变化";
+        TotalText.Text = Localizer.Format("ReportTotal", FormatDuration(total), reports.Sum(item => item.FileCount), reports.Sum(item => item.ChangeCount));
     }
 
     private async void ThisWeek_Click(object sender, RoutedEventArgs e)
@@ -91,17 +92,17 @@ public partial class ReportsWindow : Window
         }
         var dialog = new SaveFileDialog
         {
-            Filter = "Markdown 文件 (*.md)|*.md",
-            FileName = $"WorkDelta-{StartDatePicker.SelectedDate:yyyy-MM-dd}-{EndDatePicker.SelectedDate:yyyy-MM-dd}-工作报表.md"
+            Filter = Localizer.Get("MarkdownFilter"),
+            FileName = $"WorkDelta-{StartDatePicker.SelectedDate:yyyy-MM-dd}-{EndDatePicker.SelectedDate:yyyy-MM-dd}-{Localizer.Get("ReportFileSuffix")}.md"
         };
         if (dialog.ShowDialog(this) != true) return;
 
         var builder = new StringBuilder()
-            .AppendLine("# 工迹 WorkDelta 工作报表")
+            .AppendLine($"# {Localizer.Get("ReportMarkdownTitle")}")
             .AppendLine()
-            .AppendLine($"> {StartDatePicker.SelectedDate:yyyy-MM-dd} 至 {EndDatePicker.SelectedDate:yyyy-MM-dd}")
+            .AppendLine($"> {StartDatePicker.SelectedDate:yyyy-MM-dd} {Localizer.Get("To")} {EndDatePicker.SelectedDate:yyyy-MM-dd}")
             .AppendLine()
-            .AppendLine("| 项目 | 工作时段 | 活动时长 | 涉及文件 | 有效变化 |")
+            .AppendLine($"| {Localizer.Get("Project")} | {Localizer.Get("Sessions")} | {Localizer.Get("Duration")} | {Localizer.Get("FilesTouched")} | {Localizer.Get("EffectiveChanges")} |")
             .AppendLine("| --- | ---: | ---: | ---: | ---: |");
         foreach (var row in _rows)
         {
@@ -109,11 +110,10 @@ public partial class ReportsWindow : Window
         }
         builder.AppendLine().AppendLine($"**{TotalText.Text}**");
         await File.WriteAllTextAsync(dialog.FileName, builder.ToString(), new UTF8Encoding(true));
-        MessageBox.Show(this, "报表已经导出。", "工迹 WorkDelta");
+        MessageBox.Show(this, Localizer.Get("ReportExported"), Localizer.Get("AppName"));
     }
 
-    private static string FormatDuration(TimeSpan duration) =>
-        duration.TotalHours >= 1 ? $"{(int)duration.TotalHours}小时{duration.Minutes}分钟" : $"{duration.Minutes}分钟";
+    private static string FormatDuration(TimeSpan duration) => Localizer.Duration(duration);
 
     private sealed record ProjectChoice(string? Id, string Name);
     private sealed class ReportRow(ProjectActivityReport report)

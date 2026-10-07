@@ -1,6 +1,7 @@
 using System.IO;
 using System.Diagnostics;
 using System.Windows;
+using WorkDelta.App.Localization;
 using WorkDelta.App.Services;
 using WorkDelta.Core.Models;
 using WorkDelta.Core.Services;
@@ -39,6 +40,7 @@ public partial class App : System.Windows.Application
 
             Store = new WorkDeltaStore(Path.Combine(DataRoot, "workdelta.db"));
             await Store.InitializeAsync();
+            Localizer.Apply(await Store.GetSettingValueAsync("ui_language"));
             Backup = new BackupService(DataRoot, Store);
             Identity = await Store.GetOrCreateIdentityAsync();
             var pathPolicy = new PathPolicy();
@@ -51,14 +53,14 @@ public partial class App : System.Windows.Application
             _tray = new TrayService(
                 ShowMainWindow,
                 async () => await ExitAsync(),
-                "工迹 WorkDelta 正在本地记录项目变化");
+                Localizer.Get("TrayTooltip"));
             _mainWindow.Show();
         }
         catch (Exception exception)
         {
             MessageBox.Show(
-                $"WorkDelta 启动失败。\n\n{exception.Message}",
-                "工迹 WorkDelta",
+                Localizer.Format("StartupFailed", exception.Message),
+                Localizer.Get("AppName"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
             Shutdown(1);
@@ -120,11 +122,50 @@ public partial class App : System.Windows.Application
         await Engine.DisposeAsync();
 
         var executable = Environment.ProcessPath
-            ?? throw new InvalidOperationException("无法定位工迹程序文件。");
+            ?? throw new InvalidOperationException(Localizer.Get("ExecutableMissing"));
         var startInfo = new ProcessStartInfo(executable) { UseShellExecute = true };
         startInfo.ArgumentList.Add("--restore-backup");
         startInfo.ArgumentList.Add(backupPath);
         Process.Start(startInfo);
+        _mainWindow?.AllowClose();
+        _mainWindow?.Close();
+        Shutdown();
+    }
+
+    public async Task ChangeLanguageAsync(string language)
+    {
+        if (language == Localizer.LanguageSetting)
+        {
+            return;
+        }
+
+        await Store.SetSettingValueAsync("ui_language", language);
+        MessageBox.Show(
+            MainWindow,
+            Localizer.Get("RestartForLanguage"),
+            Localizer.Get("LanguageChange"),
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
+        await RestartAsync();
+    }
+
+    private async Task RestartAsync()
+    {
+        if (_isExiting)
+        {
+            return;
+        }
+
+        _isExiting = true;
+        _tray?.Dispose();
+        if (Engine is not null)
+        {
+            await Engine.DisposeAsync();
+        }
+
+        var executable = Environment.ProcessPath
+            ?? throw new InvalidOperationException(Localizer.Get("ExecutableMissing"));
+        Process.Start(new ProcessStartInfo(executable) { UseShellExecute = true });
         _mainWindow?.AllowClose();
         _mainWindow?.Close();
         Shutdown();

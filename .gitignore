@@ -5,6 +5,7 @@ obj/
 TestResults/
 artifacts/
 publish/
+/assets/
 *.user
 *.suo
 *.db

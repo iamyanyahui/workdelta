@@ -1,4 +1,5 @@
 using Microsoft.Win32;
+using WorkDelta.App.Localization;
 
 namespace WorkDelta.App.Services;
 
@@ -22,7 +23,7 @@ public sealed class StartupRegistrationService
         if (enabled)
         {
             var executable = Environment.ProcessPath
-                ?? throw new InvalidOperationException("无法获取 WorkDelta 程序路径。");
+                ?? throw new InvalidOperationException(Localizer.Get("ExecutableMissing"));
             key.SetValue(ValueName, $"\"{executable}\" --background", RegistryValueKind.String);
         }
         else

@@ -8,6 +8,9 @@
         <SolidColorBrush x:Key="TextBrush" Color="#172033" />
         <SolidColorBrush x:Key="MutedBrush" Color="#748094" />
         <SolidColorBrush x:Key="BorderBrush" Color="#E5E9F2" />
+        <Style TargetType="{x:Type Window}">
+            <Setter Property="Icon" Value="/WorkDelta;component/Assets/WorkDelta.ico" />
+        </Style>
         <Style TargetType="Button">
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Padding" Value="14,9" />

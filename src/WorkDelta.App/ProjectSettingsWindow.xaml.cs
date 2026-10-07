@@ -2,6 +2,7 @@ using System.IO;
 using System.Windows;
 using Microsoft.Win32;
 using WorkDelta.Core.Models;
+using WorkDelta.App.Localization;
 using MessageBox = System.Windows.MessageBox;
 
 namespace WorkDelta.App;
@@ -23,7 +24,7 @@ public partial class ProjectSettingsWindow : Window
 
     private void Browse_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new OpenFolderDialog { Title = "选择新的项目文件夹" };
+        var dialog = new OpenFolderDialog { Title = Localizer.Get("ChooseNewProjectFolder") };
         if (Directory.Exists(ProjectPath)) dialog.InitialDirectory = ProjectPath;
         if (dialog.ShowDialog(this) == true) PathTextBox.Text = dialog.FolderName;
     }
@@ -32,12 +33,12 @@ public partial class ProjectSettingsWindow : Window
     {
         if (string.IsNullOrWhiteSpace(ProjectName))
         {
-            MessageBox.Show(this, "请输入项目名称。", "工迹 WorkDelta");
+            MessageBox.Show(this, Localizer.Get("EnterProjectName"), Localizer.Get("AppName"));
             return;
         }
         if (!Directory.Exists(ProjectPath))
         {
-            MessageBox.Show(this, "项目文件夹不存在。", "工迹 WorkDelta");
+            MessageBox.Show(this, Localizer.Get("ProjectFolderMissing"), Localizer.Get("AppName"));
             return;
         }
         DialogResult = true;

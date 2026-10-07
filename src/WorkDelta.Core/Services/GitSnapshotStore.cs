@@ -1,5 +1,6 @@
 using LibGit2Sharp;
 using WorkDelta.Core.Models;
+using WorkDelta.Core.Localization;
 
 namespace WorkDelta.Core.Services;
 
@@ -24,7 +25,7 @@ public sealed class GitSnapshotStore(string repositoriesRoot, PathPolicy pathPol
             {
                 var worktree = EnsureRepository(project.Id);
                 SynchronizeEntireProject(project, worktree, cancellationToken);
-                return Commit(worktree, project, identity, "初始项目快照");
+                return Commit(worktree, project, identity, CoreText.Choose("初始项目快照", "Initial project snapshot"));
             }, cancellationToken);
         }
         finally
@@ -75,7 +76,7 @@ public sealed class GitSnapshotStore(string repositoriesRoot, PathPolicy pathPol
             {
                 var worktree = EnsureRepository(project.Id);
                 SynchronizeEntireProject(project, worktree, cancellationToken);
-                return Commit(worktree, project, identity, "自动校验检查点");
+                return Commit(worktree, project, identity, CoreText.Choose("自动校验检查点", "Automatic reconciliation checkpoint"));
             }, cancellationToken);
         }
         finally
@@ -97,7 +98,7 @@ public sealed class GitSnapshotStore(string repositoriesRoot, PathPolicy pathPol
             {
                 using var repository = new Repository(GetRepositoryPath(projectId));
                 var commit = repository.Lookup<Commit>(commitId)
-                    ?? throw new InvalidOperationException("找不到对应的历史检查点。");
+                    ?? throw new InvalidOperationException(CoreText.Choose("找不到对应的历史检查点。", "The requested history checkpoint could not be found."));
                 var parent = commit.Parents.FirstOrDefault();
                 var changes = repository.Diff.Compare<TreeChanges>(parent?.Tree, commit.Tree);
                 var result = new List<SnapshotFileChange>();
@@ -139,7 +140,7 @@ public sealed class GitSnapshotStore(string repositoriesRoot, PathPolicy pathPol
             {
                 using var repository = new Repository(GetRepositoryPath(project.Id));
                 var commit = repository.Lookup<Commit>(commitId)
-                    ?? throw new InvalidOperationException("找不到对应的历史检查点。");
+                    ?? throw new InvalidOperationException(CoreText.Choose("找不到对应的历史检查点。", "The requested history checkpoint could not be found."));
                 foreach (var relativePath in paths.Distinct(StringComparer.OrdinalIgnoreCase))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -166,7 +167,7 @@ public sealed class GitSnapshotStore(string repositoriesRoot, PathPolicy pathPol
             {
                 using var repository = new Repository(GetRepositoryPath(project.Id));
                 var commit = repository.Lookup<Commit>(commitId)
-                    ?? throw new InvalidOperationException("找不到对应的历史检查点。");
+                    ?? throw new InvalidOperationException(CoreText.Choose("找不到对应的历史检查点。", "The requested history checkpoint could not be found."));
                 var targetPaths = EnumerateTreePaths(commit.Tree)
                     .ToHashSet(StringComparer.OrdinalIgnoreCase);
                 foreach (var file in EnumerateFilesSafely(project.Path))
@@ -327,12 +328,12 @@ public sealed class GitSnapshotStore(string repositoriesRoot, PathPolicy pathPol
 
     private static string FriendlyStatus(ChangeKind status) => status switch
     {
-        ChangeKind.Added => "新增",
-        ChangeKind.Deleted => "删除",
-        ChangeKind.Renamed => "重命名",
-        ChangeKind.Copied => "复制",
-        ChangeKind.Modified => "修改",
-        _ => "变化"
+        ChangeKind.Added => CoreText.Choose("新增", "Added"),
+        ChangeKind.Deleted => CoreText.Choose("删除", "Deleted"),
+        ChangeKind.Renamed => CoreText.Choose("重命名", "Renamed"),
+        ChangeKind.Copied => CoreText.Choose("复制", "Copied"),
+        ChangeKind.Modified => CoreText.Choose("修改", "Modified"),
+        _ => CoreText.Choose("变化", "Changed")
     };
 
     private static string ReadText(Commit commit, string path)
@@ -357,7 +358,7 @@ public sealed class GitSnapshotStore(string repositoriesRoot, PathPolicy pathPol
         if ((long)oldLines.Length * newLines.Length > 1_500_000)
         {
             var changed = Math.Max(oldLines.Length, newLines.Length);
-            return ($"--- 旧版本/{path}\n+++ 新版本/{path}\n@@ 文件较大，共约 {changed} 行；恢复功能仍可正常使用。",
+            return (CoreText.Format("--- 旧版本/{0}\n+++ 新版本/{0}\n@@ 文件较大，共约 {1} 行；恢复功能仍可正常使用。", "--- old/{0}\n+++ new/{0}\n@@ Large file with approximately {1} changed lines; restore remains available.", path, changed),
                 Math.Max(0, newLines.Length - oldLines.Length),
                 Math.Max(0, oldLines.Length - newLines.Length));
         }
@@ -374,8 +375,8 @@ public sealed class GitSnapshotStore(string repositoriesRoot, PathPolicy pathPol
         }
 
         var builder = new System.Text.StringBuilder()
-            .AppendLine($"--- 旧版本/{path}")
-            .AppendLine($"+++ 新版本/{path}");
+            .AppendLine($"--- {CoreText.Choose("旧版本", "old")}/{path}")
+            .AppendLine($"+++ {CoreText.Choose("新版本", "new")}/{path}");
         var i = 0;
         var j = 0;
         var added = 0;
@@ -465,7 +466,7 @@ public sealed class GitSnapshotStore(string repositoriesRoot, PathPolicy pathPol
         var rootWithSeparator = Path.TrimEndingDirectorySeparator(Path.GetFullPath(worktree)) + Path.DirectorySeparatorChar;
         if (!destination.StartsWith(rootWithSeparator, StringComparison.OrdinalIgnoreCase))
         {
-            throw new InvalidOperationException("检测到无效的项目文件路径。");
+            throw new InvalidOperationException(CoreText.Choose("检测到无效的项目文件路径。", "An invalid project file path was detected."));
         }
 
         return destination;

@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using WorkDelta.Core.Models;
+using WorkDelta.Core.Localization;
 
 namespace WorkDelta.Core.Services;
 
@@ -87,7 +88,7 @@ public sealed class TrackingEngine(
                 project,
                 changes.Values.ToArray(),
                 _identity,
-                "手动检查点",
+                CoreText.Choose("手动检查点", "Manual checkpoint"),
                 cancellationToken);
             await _store.AddSnapshotAsync(project, result, "manual", cancellationToken);
             if (result.HasChanges)
@@ -320,7 +321,7 @@ public sealed class TrackingEngine(
             return;
         }
 
-        var message = $"自动检查点：{changes.Count} 个文件发生变化";
+        var message = CoreText.Format("自动检查点：{0} 个文件发生变化", "Automatic checkpoint: {0} files changed", changes.Count);
         var result = await _snapshotStore.CreateSnapshotAsync(
             project,
             changes.Values.ToArray(),

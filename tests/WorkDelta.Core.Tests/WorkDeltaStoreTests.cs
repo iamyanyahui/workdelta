@@ -6,6 +6,20 @@ namespace WorkDelta.Core.Tests;
 public sealed class WorkDeltaStoreTests
 {
     [Fact]
+    public async Task Settings_CanPersistUiLanguage()
+    {
+        var root = NewTemporaryDirectory();
+        var store = new WorkDeltaStore(Path.Combine(root, "data.db"));
+        await store.InitializeAsync();
+
+        Assert.Null(await store.GetSettingValueAsync("ui_language"));
+
+        await store.SetSettingValueAsync("ui_language", "en");
+
+        Assert.Equal("en", await store.GetSettingValueAsync("ui_language"));
+    }
+
+    [Fact]
     public async Task RecordChanges_GroupsNearbyChangesIntoOneSession()
     {
         var root = NewTemporaryDirectory();

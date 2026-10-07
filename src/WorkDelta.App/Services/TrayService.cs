@@ -1,4 +1,5 @@
 using System.Drawing;
+using WorkDelta.App.Localization;
 using Forms = System.Windows.Forms;
 
 namespace WorkDelta.App.Services;
@@ -6,18 +7,28 @@ namespace WorkDelta.App.Services;
 public sealed class TrayService : IDisposable
 {
     private readonly Forms.NotifyIcon _notifyIcon;
+    private readonly Icon _icon;
     private bool _noticeShown;
 
     public TrayService(Action showWindow, Func<Task> exit, string tooltip)
     {
         var menu = new Forms.ContextMenuStrip();
-        menu.Items.Add("打开工迹", null, (_, _) => showWindow());
+        menu.Items.Add(Localizer.Get("TrayOpen"), null, (_, _) => showWindow());
         menu.Items.Add(new Forms.ToolStripSeparator());
-        menu.Items.Add("退出", null, async (_, _) => await exit());
+        menu.Items.Add(Localizer.Get("TrayExit"), null, async (_, _) => await exit());
+
+        var iconResource = System.Windows.Application.GetResourceStream(
+            new Uri("pack://application:,,,/Assets/WorkDelta.ico"))
+            ?? throw new InvalidOperationException("The WorkDelta tray icon resource is missing.");
+        using (iconResource.Stream)
+        using (var resourceIcon = new Icon(iconResource.Stream))
+        {
+            _icon = (Icon)resourceIcon.Clone();
+        }
 
         _notifyIcon = new Forms.NotifyIcon
         {
-            Icon = SystemIcons.Application,
+            Icon = _icon,
             Text = tooltip.Length > 63 ? tooltip[..63] : tooltip,
             Visible = true,
             ContextMenuStrip = menu
@@ -35,8 +46,8 @@ public sealed class TrayService : IDisposable
         _noticeShown = true;
         _notifyIcon.ShowBalloonTip(
             2500,
-            "工迹仍在运行",
-            "项目变化会继续在本机记录。双击托盘图标可重新打开。",
+            Localizer.Get("TrayStillRunning"),
+            Localizer.Get("TrayNotice"),
             Forms.ToolTipIcon.Info);
     }
 
@@ -44,5 +55,6 @@ public sealed class TrayService : IDisposable
     {
         _notifyIcon.Visible = false;
         _notifyIcon.Dispose();
+        _icon.Dispose();
     }
 }

@@ -25,10 +25,13 @@ button { font: inherit; }
 .nav { height: 74px; display: flex; align-items: center; gap: 36px; }
 .brand { display: inline-flex; align-items: center; gap: 10px; font-size: 17px; letter-spacing: -.02em; }
 .brand strong { font-weight: 700; }
-.brand-mark { display: grid; place-items: center; width: 34px; height: 34px; color: white; background: var(--blue); border-radius: 10px; font-size: 22px; line-height: 1; }
+.brand-mark { display: grid; place-items: center; width: 38px; height: 38px; flex: none; }
+.brand-mark img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .nav-links { display: flex; gap: 30px; margin-left: auto; color: #586173; font-size: 14px; }
 .nav-links a, .text-link { transition: color .2s ease; }
 .nav-links a:hover, .text-link:hover { color: var(--blue); }
+.language-button { min-width: 42px; height: 36px; padding: 0 10px; color: #586173; background: transparent; border: 1px solid #cfd3da; border-radius: 9px; cursor: pointer; font-size: 12px; font-weight: 800; }
+.language-button:hover { color: var(--blue); border-color: var(--blue); }
 .button { display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; font-weight: 700; transition: transform .2s ease, background .2s ease, box-shadow .2s ease; }
 .button:hover { transform: translateY(-2px); }
 .button-small { min-height: 42px; padding: 0 18px; font-size: 13px; }
@@ -58,7 +61,8 @@ button { font: inherit; }
 .app-window { position: relative; z-index: 2; width: 680px; max-width: 100%; overflow: hidden; background: #f5f7fb; border: 1px solid rgba(36,48,70,.12); border-radius: 18px; box-shadow: 0 34px 80px rgba(41,49,67,.2), 0 8px 24px rgba(41,49,67,.1); transform: rotateY(-3deg) rotateX(1deg); }
 .app-topbar { height: 57px; padding: 0 18px; display: flex; justify-content: space-between; align-items: center; background: white; border-bottom: 1px solid #e8ebf2; }
 .app-brand { display: flex; align-items: center; gap: 9px; }
-.app-logo { display: grid; place-items: center; width: 30px; height: 30px; color: white; background: var(--blue); border-radius: 8px; font-size: 18px; }
+.app-logo { display: grid; place-items: center; width: 34px; height: 34px; flex: none; }
+.app-logo img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .app-brand > span:last-child { display: flex; flex-direction: column; }
 .app-brand b { font-size: 10px; }
 .app-brand small, .project small, .app-heading small, .timeline-item small { margin-top: 2px; color: #9299a7; font-size: 6px; }
@@ -183,6 +187,22 @@ button { font: inherit; }
 .faq-list details[open] summary i::after { transform: rotate(0); }
 .faq-list details p { margin: -6px 50px 26px 0; color: #707887; font-size: 13px; line-height: 1.85; }
 
+.support-section { padding: 0 0 130px; }
+.support-panel { padding: 58px 64px; background: white; border: 1px solid var(--line); }
+.support-intro { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; }
+.support-panel h2 { margin: 0; font-family: var(--serif); font-size: clamp(34px, 3.5vw, 50px); font-weight: 500; letter-spacing: -.045em; line-height: 1.05; }
+.support-copy { align-self: center; color: #697282; font-size: 14px; line-height: 1.8; }
+.support-copy p { margin: 0; }
+.payment-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 46px; }
+.payment-card { display: flex; min-width: 0; padding: 22px; flex-direction: column; align-items: stretch; background: #f8f9fb; border: 1px solid #e3e5e9; }
+.payment-card h3 { margin: 0; font-family: var(--serif); font-size: 24px; font-weight: 500; }
+.payment-card > p { min-height: 42px; margin: 7px 0 16px; color: #7a8290; font-size: 12px; line-height: 1.7; }
+.payment-qr-frame { display: grid; aspect-ratio: 1; padding: 18px; place-items: center; overflow: hidden; background: white; border: 1px solid #e2e5eb; }
+.payment-qr-frame img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.payment-secondary-link { margin-top: 14px; align-self: center; color: var(--blue); font-size: 12px; }
+.payment-secondary-link:hover { text-decoration: underline; }
+.payment-paypal-button { min-height: 43px; margin-top: 14px; justify-content: center; color: white; background: var(--blue); font-size: 12px; }
+
 .cta-section { padding-bottom: 130px; }
 .cta-panel { position: relative; overflow: hidden; min-height: 420px; padding: 72px 76px; color: white; background: var(--blue); }
 .cta-panel::before, .cta-panel::after { content: ""; position: absolute; border: 1px solid rgba(255,255,255,.16); border-radius: 50%; }
@@ -211,13 +231,15 @@ button { font: inherit; }
   .feature-grid { grid-template-columns: 1fr 1fr; }
   .feature-large { grid-row: span 2; }
   .privacy-grid { gap: 70px; }
+  .payment-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 760px) {
   .shell { width: min(100% - 32px, 620px); }
   .nav { height: 66px; }
   .nav > .button { display: none; }
-  .menu-button { display: block; margin-left: auto; cursor: pointer; }
+  .language-button { margin-left: auto; }
+  .menu-button { display: block; cursor: pointer; }
   .nav-links { position: absolute; top: 66px; left: 0; right: 0; display: none; margin: 0; padding: 22px 24px 28px; flex-direction: column; gap: 20px; background: rgba(247,245,239,.98); border-bottom: 1px solid var(--line); }
   .nav-links.open { display: flex; }
   .hero { min-height: auto; padding-top: 64px; padding-bottom: 76px; gap: 32px; }
@@ -240,6 +262,11 @@ button { font: inherit; }
   .steps { grid-template-columns: 1fr; }
   .steps li { min-height: 315px; }
   .faq-section { grid-template-columns: 1fr; gap: 48px; }
+  .support-section { padding-bottom: 88px; }
+  .support-panel { padding: 42px 28px; }
+  .support-intro { grid-template-columns: 1fr; gap: 32px; }
+  .payment-grid { grid-template-columns: 1fr; margin-top: 34px; }
+  .payment-qr-frame { width: min(100%, 420px); align-self: center; }
   .cta-section { padding-bottom: 88px; }
   .cta-panel { min-height: 450px; padding: 54px 28px; }
   .cta-mark { right: 10px; top: 150px; }

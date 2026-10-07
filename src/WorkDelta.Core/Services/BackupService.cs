@@ -1,4 +1,5 @@
 using System.IO.Compression;
+using WorkDelta.Core.Localization;
 using System.Text.Json;
 
 namespace WorkDelta.Core.Services;
@@ -51,7 +52,7 @@ public sealed class BackupService(string dataRoot, WorkDeltaStore store)
     {
         if (!File.Exists(archivePath))
         {
-            throw new FileNotFoundException("找不到工迹备份文件。", archivePath);
+            throw new FileNotFoundException(CoreText.Choose("找不到工迹备份文件。", "The WorkDelta backup file could not be found."), archivePath);
         }
 
         var fullDataRoot = Path.GetFullPath(dataRoot);
@@ -66,7 +67,7 @@ public sealed class BackupService(string dataRoot, WorkDeltaStore store)
             if (!File.Exists(Path.Combine(temporary, "manifest.json")) ||
                 !File.Exists(Path.Combine(temporary, "workdelta.db")))
             {
-                throw new InvalidDataException("这不是有效的工迹备份文件。");
+                throw new InvalidDataException(CoreText.Choose("这不是有效的工迹备份文件。", "This is not a valid WorkDelta backup file."));
             }
 
             Directory.CreateDirectory(fullDataRoot);

@@ -1,0 +1,83 @@
+<Window x:Class="WorkDelta.App.SupportWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:WorkDelta.App.Localization"
+        Icon="/WorkDelta;component/Assets/WorkDelta.ico"
+        Title="{loc:Loc SupportAuthor}" Width="970" Height="720" MinWidth="820" MinHeight="620"
+        WindowStartupLocation="CenterOwner"
+        Background="#F5F7FB" FontFamily="Segoe UI, Microsoft YaHei UI">
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Margin="8,0,8,18">
+            <TextBlock Text="{loc:Loc SupportAuthor}" FontSize="26" FontWeight="SemiBold" />
+            <TextBlock Text="{loc:Loc SupportDescription}" Margin="0,8,0,0" TextWrapping="Wrap"
+                       FontSize="13" Foreground="#667085" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <UniformGrid Columns="3">
+                <Border Margin="7" Padding="16" Background="White" BorderBrush="#E1E6EF" BorderThickness="1" CornerRadius="14">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="{loc:Loc Alipay}" FontSize="18" FontWeight="SemiBold" />
+                        <TextBlock Grid.Row="1" Text="{loc:Loc ScanWithAlipay}" Margin="0,5,0,12" Foreground="#667085" FontSize="12" />
+                        <Border Grid.Row="2" Background="#F8FAFD" CornerRadius="10" Padding="8">
+                            <Image Source="/WorkDelta;component/Assets/Support/alipay-qr.png" Stretch="Uniform"
+                                   Cursor="Hand" ToolTip="{loc:Loc ClickToEnlarge}" MouseLeftButtonUp="PreviewImage_MouseLeftButtonUp" />
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <Border Margin="7" Padding="16" Background="White" BorderBrush="#E1E6EF" BorderThickness="1" CornerRadius="14">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="{loc:Loc WechatPay}" FontSize="18" FontWeight="SemiBold" />
+                        <TextBlock Grid.Row="1" Text="{loc:Loc ScanWithWechat}" Margin="0,5,0,12" Foreground="#667085" FontSize="12" />
+                        <Border Grid.Row="2" Background="#F8FAFD" CornerRadius="10" Padding="8">
+                            <Image Source="/WorkDelta;component/Assets/Support/wechat-pay-qr.png" Stretch="Uniform"
+                                   Cursor="Hand" ToolTip="{loc:Loc ClickToEnlarge}" MouseLeftButtonUp="PreviewImage_MouseLeftButtonUp" />
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <Border Margin="7" Padding="16" Background="White" BorderBrush="#E1E6EF" BorderThickness="1" CornerRadius="14">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="{loc:Loc PayPal}" FontSize="18" FontWeight="SemiBold" />
+                        <TextBlock Grid.Row="1" Text="{loc:Loc ScanOrOpenPayPal}" Margin="0,5,0,12" Foreground="#667085"
+                                   FontSize="12" TextWrapping="Wrap" />
+                        <Border Grid.Row="2" Background="#F8FAFD" CornerRadius="10" Padding="14">
+                            <Image Source="/WorkDelta;component/Assets/Support/paypal-qr.png" Stretch="Uniform"
+                                   Cursor="Hand" ToolTip="{loc:Loc ClickToEnlarge}" MouseLeftButtonUp="PreviewImage_MouseLeftButtonUp" />
+                        </Border>
+                        <Button Grid.Row="3" Content="{loc:Loc OpenPayPal}" Click="OpenPayPal_Click" Margin="0,12,0,0" />
+                    </Grid>
+                </Border>
+            </UniformGrid>
+        </ScrollViewer>
+
+        <Grid Grid.Row="2" Margin="8,18,8,0">
+            <TextBlock Text="{loc:Loc SupportOptionalNotice}" TextWrapping="Wrap" VerticalAlignment="Center"
+                       Foreground="#7A8495" FontSize="11" Margin="0,0,120,0" />
+            <Button Content="{loc:Loc Close}" HorizontalAlignment="Right" IsCancel="True" MinWidth="90" />
+        </Grid>
+    </Grid>
+</Window>

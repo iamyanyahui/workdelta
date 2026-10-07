@@ -1,4 +1,5 @@
 using WorkDelta.Core.Models;
+using WorkDelta.App.Localization;
 
 namespace WorkDelta.App.ViewModels;
 
@@ -9,10 +10,10 @@ public sealed class TimelineRow
         StartTime = entry.StartedAt.ToLocalTime().ToString("HH:mm");
         EndTime = entry.LastActivityAt.ToLocalTime().ToString("HH:mm");
         Duration = FormatDuration(entry.ActiveDuration);
-        Summary = $"修改 {entry.FileCount} 个文件 · {entry.ChangeCount} 次有效变化";
+        Summary = Localizer.Format("TimelineSummary", entry.FileCount, entry.ChangeCount);
         Files = entry.Files.Count == 0
-            ? "暂无文件明细"
-            : string.Join("   ·   ", entry.Files.Take(4)) + (entry.Files.Count > 4 ? $"   等 {entry.Files.Count} 个文件" : string.Empty);
+            ? Localizer.Get("NoFileDetails")
+            : string.Join("   ·   ", entry.Files.Take(4)) + (entry.Files.Count > 4 ? Localizer.Format("MoreFiles", entry.Files.Count) : string.Empty);
     }
 
     public string StartTime { get; }
@@ -23,10 +24,6 @@ public sealed class TimelineRow
 
     private static string FormatDuration(TimeSpan duration)
     {
-        if (duration.TotalHours >= 1)
-        {
-            return $"{(int)duration.TotalHours}小时{duration.Minutes}分钟";
-        }
-        return $"{Math.Max(1, duration.Minutes)}分钟";
+        return Localizer.Duration(duration, atLeastOneMinute: true);
     }
 }
